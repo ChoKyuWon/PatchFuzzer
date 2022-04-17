@@ -1,0 +1,17 @@
+diff --git a/test.c b/test.c
+index d0ed447..b1a9fca 100644
+--- a/test.c
++++ b/test.c
+@@ -1,10 +1,10 @@
+ #include <stdio.h>
+ 
+ int main(){
+-    int a = 0x1;
++    int a = 0x0;
+     if(a) {
+         int b1 = 0;
+-        printf("This is basic block 2\n");
++        printf("This is basic block 1\n");
+     }
+     else {
+         printf("This is basic block 2\n");
