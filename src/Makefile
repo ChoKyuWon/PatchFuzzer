@@ -9,7 +9,7 @@ LLVMLIBS=$(shell $(LLVM_CONFIG) --libs bitreader support)
 SYSTEMLIBS=$(shell $(LLVM_CONFIG) --system-libs)
 
 MAIN=main
-MAIN_OBJECTS=main.o
+MAIN_OBJECTS=main.o DiffMarker.o
 
 default: $(MAIN)
 
