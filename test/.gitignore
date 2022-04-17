@@ -1,2 +1,2 @@
-*.bc
+*.bc *.ll
 patched*

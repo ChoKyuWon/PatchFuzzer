@@ -10,6 +10,8 @@
 #include "llvm/Support/raw_ostream.h"
 #include "llvm/Transforms/Utils/FunctionComparator.h"
 
+#include "DiffMaker.h"
+
 #include <memory>
 
 using namespace llvm;
@@ -97,5 +99,8 @@ int main(int argc, char **argv) {
     errs() << "Something wrong I can feel it\n";
   BasicBlock *b1 = &original->getFunction("main")->getEntryBlock();
   BasicBlock *b2 = &patched->getFunction("main")->getEntryBlock();
+  GlobalNumberState GN;
+  DiffMarker diff(original->getFunction("main"), patched->getFunction("main"), &GN);
+  diff.mark();
   return 0;
 }

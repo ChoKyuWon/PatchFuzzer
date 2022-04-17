@@ -8,23 +8,28 @@
 #include "llvm/Support/ErrorOr.h"
 #include "llvm/Support/MemoryBuffer.h"
 #include "llvm/Support/raw_ostream.h"
-#include "llvm/Transforms/Utils/FunctionComparator.h"
 
+#include "DiffMaker.h"
 using namespace llvm;
 
-class DiffMarker : public FunctionComparator {
-public:
-  Function *mark(Function *original, Function *patched);
-};
 
-Function *DiffMarker::mark(Function *original, Function *patched) {
-  Function::const_iterator BBL = original->begin(), BBLE = original->end();
-  Function::const_iterator BBR = patched->begin(), BBRE = patched->end();
+
+Function *DiffMarker::mark() {
+  Function::const_iterator BBL = this->FnL->begin(), BBLE = this->FnL->end();
+  Function::const_iterator BBR = this->FnR->begin(), BBRE = this->FnR->end();
   do {
+    errs() << "left block is...\n";
+    for(auto& I : *BBL)
+      errs() << I << "\n";
+    errs() << "right block is...\n";
+    for(auto& I : *BBR)
+      errs() << I << "\n";
+
     int res = cmpBasicBlocks(&*BBL, &*BBR);
 
+    errs() << "This block is... " << res << "\n";
     ++BBL;
     ++BBR;
   } while (BBL != BBLE && BBR != BBRE);
-  return patched;
+  return nullptr;
 }
