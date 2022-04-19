@@ -15,21 +15,44 @@ using namespace llvm;
 
 
 Function *DiffMarker::mark() {
+  LLVMContext& C = this->FnR->getContext();
+  std::vector<const BasicBlock*> diffBlocks;
+
   Function::const_iterator BBL = this->FnL->begin(), BBLE = this->FnL->end();
   Function::const_iterator BBR = this->FnR->begin(), BBRE = this->FnR->end();
-  do {
-    errs() << "left block is...\n";
-    for(auto& I : *BBL)
-      errs() << I << "\n";
-    errs() << "right block is...\n";
-    for(auto& I : *BBR)
-      errs() << I << "\n";
-
-    int res = cmpBasicBlocks(&*BBL, &*BBR);
-
-    errs() << "This block is... " << res << "\n";
+  for(auto &BBR: *(this->FnR)){
+    int res = cmpBasicBlocks(&*BBL, &BBR);
+    if(res == 0)
+      continue;
+    else{
+      if(BBL->size() != BBR.size()){
+        diffBlocks.push_back(&BBR);
+        continue;
+      }
+      BasicBlock::const_iterator InstL = BBL->begin(), InstR = BBR.begin();
+      for(int i=0; i<BBL->size(); ++i){
+        std::string strL, strR;
+        raw_string_ostream(strL) << *InstL;
+        raw_string_ostream(strR) << *InstR;
+        if(strL != strR){
+          diffBlocks.push_back(&BBR);
+          break;
+        }
+        ++InstL;
+        ++InstR;
+      }
+    }
     ++BBL;
-    ++BBR;
-  } while (BBL != BBLE && BBR != BBRE);
+  }
+  for(auto& BB: diffBlocks){
+    for(auto& I : *BB)
+      if(I.getOpcode() == Instruction::Add){
+        auto INC = I.getOperand(1);
+        int val = 0;
+        if(isa<ConstantInt>(INC))
+          val = dyn_cast<ConstantInt>(INC)->getSExtValue();
+        I.setOperand(1, ConstantInt::get(Type::getInt64Ty(C), 2));
+      }
+  }
   return nullptr;
 }
