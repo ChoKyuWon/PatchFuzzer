@@ -13,6 +13,8 @@
 #include "DiffMaker.h"
 
 #include <memory>
+#include <iostream>
+
 
 using namespace llvm;
 
@@ -20,53 +22,6 @@ static cl::opt<std::string>
     originalFileName(cl::Positional, cl::desc("Bitcode file"), cl::Required);
 static cl::opt<std::string>
     patchedFileName(cl::Positional, cl::desc("Bitcode file"), cl::Required);
-
-// int cmpBasicBlocks(const BasicBlock *BBL,
-//                                         const BasicBlock *BBR) const {
-//    BasicBlock::const_iterator InstL = BBL->begin(), InstLE = BBL->end();
-//    BasicBlock::const_iterator InstR = BBR->begin(), InstRE = BBR->end();
-
-//    do {
-//      bool needToCmpOperands = true;
-//      if (int Res = cmpOperations(&*InstL, &*InstR, needToCmpOperands))
-//        return Res;
-//      if (needToCmpOperands) {
-//        assert(InstL->getNumOperands() == InstR->getNumOperands());
-
-//        for (unsigned i = 0, e = InstL->getNumOperands(); i != e; ++i) {
-//          Value *OpL = InstL->getOperand(i);
-//          Value *OpR = InstR->getOperand(i);
-//          if (int Res = cmpValues(OpL, OpR))
-//            return Res;
-//          // cmpValues should ensure this is true.
-//          assert(cmpTypes(OpL->getType(), OpR->getType()) == 0);
-//        }
-//      }
-
-//      ++InstL;
-//      ++InstR;
-//    } while (InstL != InstLE && InstR != InstRE);
-
-//    if (InstL != InstLE && InstR == InstRE)
-//      return 1;
-//    if (InstL == InstLE && InstR != InstRE)
-//      return -1;
-//    return 0;
-//  }
-
-// int isDiffBB(BasicBlock* b1, BasicBlock* b2) {
-//     if(b1->size() != b2->size())
-//         return -1;
-//     auto inst2 = b2->begin();
-//     for (auto inst1 = b1->begin(), e = b1->end() ; inst1!=e; ++inst1) {
-//         if(inst1 != inst2){
-//             errs() << inst1->getOpcodeName() << " " << inst2->getOpcodeName()
-//             << "\n"; return -2;
-//         }
-//         ++inst2;
-//     }
-//     return 0;
-// }
 
 int main(int argc, char **argv) {
   cl::ParseCommandLineOptions(argc, argv, "LLVM hello world\n");
@@ -102,5 +57,6 @@ int main(int argc, char **argv) {
   GlobalNumberState GN;
   DiffMarker diff(original->getFunction("main"), patched->getFunction("main"), &GN);
   diff.mark();
+  patched->print(errs(), nullptr);
   return 0;
 }
