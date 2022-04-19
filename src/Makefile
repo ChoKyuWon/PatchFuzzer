@@ -20,4 +20,4 @@ $(MAIN) : $(MAIN_OBJECTS)
 	$(CXX) -o $@ $(CXXFLAGS) $(LDFLAGS) $^ $(LLVMLIBS) $(SYSTEMLIBS)
 
 clean::
-	$(QUIET)rm -f $(HELLO) $(HELLO_OBJECTS)
+	$(QUIET)rm -f $(MAIN) $(MAIN_OBJECTS)
