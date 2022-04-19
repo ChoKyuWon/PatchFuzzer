@@ -51,7 +51,7 @@ Function *DiffMarker::mark() {
         int val = 0;
         if(isa<ConstantInt>(INC))
           val = dyn_cast<ConstantInt>(INC)->getSExtValue();
-        I.setOperand(1, ConstantInt::get(Type::getInt64Ty(C), 2));
+        const_cast<Instruction*>(&I)->setOperand(1, ConstantInt::get(Type::getInt64Ty(C), 2));
       }
   }
   return nullptr;
