@@ -10,6 +10,7 @@
 #include "llvm/Support/raw_ostream.h"
 #include "llvm/IR/CFG.h"
 #include "llvm/IR/Constants.h"
+#include "llvm/IR/IRBuilder.h"
 
 #include <cstdlib>
 #include <vector>
@@ -50,7 +51,7 @@ void DiffMarker::traverse(std::vector<BasicBlock*> LeftList, std::vector<BasicBl
 
 Function *DiffMarker::mark() {
   LLVMContext& C = this->FnR->getContext();
-  std::vector<const BasicBlock*> diffBlocks;
+  std::vector<BasicBlock*> diffBlocks;
 
   for(auto &BBR: *(this->FnR)){
     bool flag = false;
@@ -59,29 +60,58 @@ Function *DiffMarker::mark() {
         flag = true;
     }
     if(!flag)
-      diffBlocks.push_back(&BBR);
+      diffBlocks.push_back(const_cast<BasicBlock*>(&BBR));
   }
+
+  // Block ID randomization
   for(auto& BB: *(this->FnR)){
     for(auto& I : BB){
       if(I.getOpcode() == Instruction::Xor){
           auto OP = I.getOperand(1);
           auto* R = ConstantInt::get(OP->getType(), std::rand() % MAP_SIZE);
           const_cast<Instruction*>(&I)->setOperand(1, R);
-        }
+      }
     }
   }
+
+  // Work with diff blocks
   for(auto& BB: diffBlocks){
-    errs() << BB << "\n";
+    int blockID = -1;
     for(auto& I : *BB){
+      // record the blockID
+      if(I.getOpcode() == Instruction::Xor){
+          auto OP = I.getOperand(1);
+          if(isa<ConstantInt>(OP))
+            blockID = dyn_cast<ConstantInt>(OP)->getSExtValue();
+      }
+      // Increase the weight
       if(I.getOpcode() == Instruction::Add){
         auto INC = I.getOperand(1);
         int val = 0;
         if(isa<ConstantInt>(INC))
           val = dyn_cast<ConstantInt>(INC)->getSExtValue();
-        const_cast<Instruction*>(&I)->setOperand(1, ConstantInt::get(Type::getInt64Ty(C), 2));
+        const_cast<Instruction*>(&I)->setOperand(1, ConstantInt::get(INC->getType(), 2));
         break;
       }
     }
+    // Coverage measuring
+      IntegerType *Int8Ty  = IntegerType::getInt8Ty(C);
+      IntegerType *Int32Ty = IntegerType::getInt32Ty(C);
+      const Module *M = FnR->getParent();
+      
+      GlobalVariable *AFLMapPtr = FnR->getParent()->getGlobalVariable("__afl_patched_area_ptr");
+      assert(AFLMapPtr);
+      IRBuilder<> IRB(&BB->front());
+      LoadInst *MapPtr = IRB.CreateLoad(AFLMapPtr);
+      MapPtr->setMetadata(M->getMDKindID("nosanitize"), MDNode::get(C, None));
+      Value *MapPtrIdx =
+          IRB.CreateGEP(MapPtr, ConstantInt::get(Int32Ty, blockID));
+
+      LoadInst *Counter = IRB.CreateLoad(MapPtrIdx);
+      Counter->setMetadata(M->getMDKindID("nosanitize"), MDNode::get(C, None));
+      Value *Incr = IRB.CreateAdd(Counter, ConstantInt::get(Int8Ty, 1));
+      IRB.CreateStore(Incr, MapPtrIdx)
+          ->setMetadata(M->getMDKindID("nosanitize"), MDNode::get(C, None));
   }
   return nullptr;
 }

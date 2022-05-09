@@ -1,3 +1,4 @@
+make -C AFL/llvm_mode
 make -C test patch
 make -C test bitcode
 make -C src
