@@ -10,4 +10,5 @@ int main(){
         printf("This is basic block 2\n");
     }
     a = 10;
+    __afl_print_counter();
 }

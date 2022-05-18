@@ -35,7 +35,8 @@ int main(int argc, char **argv) {
   }
   auto m_original = parseBitcodeFile(mb->get()->getMemBufferRef(), context);
   if (std::error_code ec = errorToErrorCode(m_original.takeError())) {
-    errs() << "Unable to read bitcode file.." << ec.message();
+    errs() << "Unable to read bitcode file:" << originalFileName << " " << ec.message() << "\n";
+    return -1;
   }
 
   mb = MemoryBuffer::getFile(patchedFileName);
@@ -45,7 +46,8 @@ int main(int argc, char **argv) {
   }
   auto m_patched = parseBitcodeFile(mb->get()->getMemBufferRef(), context);
   if (std::error_code ec = errorToErrorCode(m_patched.takeError())) {
-    errs() << "Unable to read bitcode file.." << ec.message();
+    errs() << "Unable to read bitcode file:" << patchedFileName << " " << ec.message() << "\n";
+    return -1;
   }
 
   auto original = std::move(m_original.get());
@@ -55,6 +57,9 @@ int main(int argc, char **argv) {
   BasicBlock *b1 = &original->getFunction("main")->getEntryBlock();
   BasicBlock *b2 = &patched->getFunction("main")->getEntryBlock();
   GlobalNumberState GN;
+  
+  //TODO: get a diff function name list
+
   DiffMarker diff(original->getFunction("main"), patched->getFunction("main"), &GN);
   diff.mark();
   patched->print(errs(), nullptr);

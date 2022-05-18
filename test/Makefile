@@ -2,7 +2,7 @@ all:patch bitcode ll
 CC := $(shell pwd)/../AFL/afl-clang-fast
 patch:
 	patch -p1 -i patch -o patched_test.c
-bitcode:
+bitcode: ll
 	$(CC) -emit-llvm -o test.bc -c test.c -g -O0
 	$(CC) -emit-llvm -o patched_test.bc -c patched_test.c -g -O0
 

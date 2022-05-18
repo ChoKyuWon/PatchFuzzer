@@ -64,25 +64,25 @@ Function *DiffMarker::mark() {
   }
 
   // Block ID randomization
-  for(auto& BB: *(this->FnR)){
-    for(auto& I : BB){
-      if(I.getOpcode() == Instruction::Xor){
-          auto OP = I.getOperand(1);
-          auto* R = ConstantInt::get(OP->getType(), std::rand() % MAP_SIZE);
-          const_cast<Instruction*>(&I)->setOperand(1, R);
-      }
-    }
-  }
+  // for(auto& BB: *(this->FnR)){
+  //   for(auto& I : BB){
+  //     if(I.getOpcode() == Instruction::Xor){
+          
+  //     }
+  //   }
+  // }
 
   // Work with diff blocks
   for(auto& BB: diffBlocks){
     int blockID = -1;
     for(auto& I : *BB){
-      // record the blockID
       if(I.getOpcode() == Instruction::Xor){
+          if(blockID != -1)
+            continue;
+          blockID = std::rand() % MAP_SIZE;
           auto OP = I.getOperand(1);
-          if(isa<ConstantInt>(OP))
-            blockID = dyn_cast<ConstantInt>(OP)->getSExtValue();
+          auto* R = ConstantInt::get(OP->getType(), blockID);
+          const_cast<Instruction*>(&I)->setOperand(1, R);
       }
       // Increase the weight
       if(I.getOpcode() == Instruction::Add){
