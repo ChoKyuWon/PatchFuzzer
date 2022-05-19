@@ -1,4 +1,4 @@
-AFL_PATH=~/patchfuzzer_project/AFL
+AFL_PATH=$(shell pwd)/../../AFL
 
 all:
 	cd ./openssl && AFL_PATH=$(AFL_PATH) CC=$(AFL_PATH)/afl-clang-fast CXX=$(AFL_PATH)/afl-clang-fast++ ./config -d && AFL_PATH=$(AFL_PATH) AFL_USE_ASAN=1 make
