@@ -11,11 +11,10 @@
 #include "llvm/IR/CFG.h"
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/IRBuilder.h"
+#include "llvm/Transforms/Utils/FunctionComparator.h"
 
 #include <cstdlib>
 #include <vector>
-
-#include <llvm-12/llvm/Transforms/Utils/FunctionComparator.h>
 
 #include "DiffMarker.h"
 
