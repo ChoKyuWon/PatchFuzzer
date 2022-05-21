@@ -1,3 +1,6 @@
 [submodule "AFL"]
 	path = AFL
 	url = https://github.com/ChoKyuWon/AFL.git
+[submodule "test/weight_test/openssl"]
+	path = test/weight_test/openssl
+	url = https://github.com/openssl/openssl.git
