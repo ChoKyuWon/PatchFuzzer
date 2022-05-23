@@ -1,5 +1,6 @@
 #include "llvm/ADT/StringRef.h"
 #include "llvm/Bitcode/BitcodeReader.h"
+#include "llvm/Bitcode/BitcodeWriter.h"
 #include "llvm/IR/BasicBlock.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/LLVMContext.h"
@@ -60,8 +61,23 @@ int main(int argc, char **argv) {
   
   //TODO: get a diff function name list
 
-  DiffMarker diff(original->getFunction("main"), patched->getFunction("main"), &GN);
-  diff.mark();
-  patched->print(errs(), nullptr);
+  // Long-Term solution
+  // DiffMarker diff(original->getFunction("main"), patched->getFunction("main"), &GN);
+  // diff.mark();
+
+  // Temporary solution
+  while(true){
+    std::string modFuncName;
+    std::cin >> modFuncName;
+    if(!modFuncName.compare("end"))
+      break;
+    auto Func = patched->getFunction(modFuncName);
+    assert(Func);
+    tmp_marking(*Func, 2);
+  }
+  std::error_code EC;
+  llvm::raw_fd_ostream OS("module", EC, llvm::sys::fs::F_None);
+  WriteBitcodeToFile(*patched, OS);
+  OS.flush();
   return 0;
 }

@@ -114,3 +114,47 @@ Function *DiffMarker::mark() {
   }
   return nullptr;
 }
+
+void tmp_marking(Function& f, int w){
+  LLVMContext& C = f.getContext();
+  for(auto& BB: f){
+    int blockID = -1;
+    for(auto& I : BB){
+      if(I.getOpcode() == Instruction::Xor){
+          if(blockID != -1)
+            continue;
+          blockID = std::rand() % MAP_SIZE;
+          auto OP = I.getOperand(1);
+          auto* R = ConstantInt::get(OP->getType(), blockID);
+          const_cast<Instruction*>(&I)->setOperand(1, R);
+      }
+      // Increase the weight
+      if(I.getOpcode() == Instruction::Add){
+        auto INC = I.getOperand(1);
+        int val = 0;
+        if(isa<ConstantInt>(INC))
+          val = dyn_cast<ConstantInt>(INC)->getSExtValue();
+        const_cast<Instruction*>(&I)->setOperand(1, ConstantInt::get(INC->getType(), w));
+        break;
+      }
+    }
+    // Coverage measuring
+      IntegerType *Int8Ty  = IntegerType::getInt8Ty(C);
+      IntegerType *Int32Ty = IntegerType::getInt32Ty(C);
+      const Module *M = f.getParent();
+      
+      GlobalVariable *AFLMapPtr = f.getParent()->getGlobalVariable("__afl_patched_area_ptr");
+      assert(AFLMapPtr);
+      IRBuilder<> IRB(&BB.front());
+      LoadInst *MapPtr = IRB.CreateLoad(AFLMapPtr);
+      MapPtr->setMetadata(M->getMDKindID("nosanitize"), MDNode::get(C, None));
+      Value *MapPtrIdx =
+          IRB.CreateGEP(MapPtr, ConstantInt::get(Int32Ty, blockID));
+
+      LoadInst *Counter = IRB.CreateLoad(MapPtrIdx);
+      Counter->setMetadata(M->getMDKindID("nosanitize"), MDNode::get(C, None));
+      Value *Incr = IRB.CreateAdd(Counter, ConstantInt::get(Int8Ty, 1));
+      IRB.CreateStore(Incr, MapPtrIdx)
+          ->setMetadata(M->getMDKindID("nosanitize"), MDNode::get(C, None));
+  }
+}

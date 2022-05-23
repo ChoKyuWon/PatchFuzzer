@@ -14,3 +14,5 @@ public:
   bool cmpBasicBlocks(const BasicBlock* BBL, const BasicBlock* BBR);
   Function *mark();
 };
+
+void tmp_marking(Function& f, int w);
