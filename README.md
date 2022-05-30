@@ -1,12 +1,4 @@
 # README
 
-```
-cd test/weight_test
-./build.sh
-# Write the function list to stdin, and write "end"
-e.g)
-main
-end
-```
-Now the final executable is created: ``hanshake.opt.out``
-We can use the afl-fuzz this binary!
+This is repository about ESW4012_41 in 2022 Spring.
+Please refer this [paper](https://github.com/ChoKyuWon/PatchFuzzer/blob/master/paper/report.pdf).
